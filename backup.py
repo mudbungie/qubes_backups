@@ -6,8 +6,8 @@
 # Copyright 2017 Mudbungie 
 # Please contact the author mudbungie@mudbungie.net
 
-# This is a backup script for files in Qubes images. Must be executed in dom0,
-# because it executes in multiple domains.
+# This is a backup script for files in Qubes images. Requires either execution 
+# in dom0 or valid qubes-rpc policies (untested). 
 # It reads a JSON config file, specified by the first argument. The config will
 # specify files inside of VMs that will be added to the backup, as well as a 
 # backup destination VM, to which the files will be copied. It will optionally
