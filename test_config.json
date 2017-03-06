@@ -1,8 +1,9 @@
 {
 	"password" : "don't use this password",
 	"backup_vm" : "backups",
-	"files" : [
-		"personal-ssh:/home/user/.vimrc",
-		"downloads:/home/user/Downloads/large_file.pdf"
+	"post_backup_command": "scp -F ~/.ssh/config -r {!} backup@yourserver.yourdomain.net:",
+	"paths" : [
+		"personal-ssh:.ssh",
+		"work:Documents/spreadsheets/"
 	]
 }
