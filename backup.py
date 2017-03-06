@@ -17,6 +17,7 @@
 from configobj import ConfigObj
 from sys import argv, exit
 from subprocess import run, PIPE
+from datetime import datetime
 import re
 import logging
 
@@ -55,9 +56,9 @@ def encrypt_path(path, password):
 	vm_name = path.split(':')[0]
 	vm_path = re.sub('^\w+:', '', path)
 	# 
-	vm_command = 'tar cfz - {} | gpg --cipher-algo AES256 -acqo --passphrase {}'.\
+	command = 'tar cfz - {} | gpg --cipher-algo AES256 -acqo --passphrase {}'.\
 		format(vm_path, password)
-	tarball = vm_run(vm_command)
+	tarball = vm_run(command)
 	return tarball
 
 # Takes a path and the password, returns dict of paths:encrypted tarballs.
@@ -72,10 +73,22 @@ def encrypt_all(paths, password):
 			logging.error('Failed to create backup for path {}'.format(path))
 	return enc_files
 
+def send_to_backup_vm(vm_name, enc_files):
+	# So that I don't have to keep passing the backup name.
+	def bvm_run(command):
+		vm_run(vm_name, command)
+
+	now = datetime.now().isoformat()
+	bvm_run('mkdir backup_{}'.format(now))
+	for name, enc_f in enc_files.items():
+		# Gotta scrub illegal pathnames.
+		name = name.replace('/', '-')
+		bvm_run('cat > {}/{}'.format(now, name), stdin=enc_f)
+
 if __name__ == '__main__':
 	logging.basicConfig(format='%(levelname)s:%(message)s',level=logging.DEBUG) 
 	config, password = get_config()
-	encrypted_files = encrypt_all(config['paths'], password)
+	enc = encrypt_all(config['paths'], password)
 		
 	# Before executing anything, get a password, if necessary.
 	
