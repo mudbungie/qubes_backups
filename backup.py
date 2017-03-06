@@ -16,8 +16,9 @@
 
 from configobj import ConfigObj
 from sys import argv, exit
-from os import subprocess
+from subprocess import run, PIPE
 import re
+import logging
 
 # Get basic configuration stuff
 def get_config():
@@ -37,34 +38,44 @@ def get_config():
 		password = getpass('Enter password: ')
 	return config, password
 
-# Wrapper for qvm-run, passing input back and forth.
-def vm_run(vm_name, command, pipe_in=None):
-	
-	
+# Subprocess wrapper for qvm-run, passing input back and forth.
+def vm_run(vm_name, command, stdin=None):
+	if stdin:
+		stdin = stdin.encode()
+	# -a turns on the VM, if it's off; -p passes pipes back and forth. 
+	args = ['qvm-run', '-a', '-p', '{}'.format(vm_name), "'{}'".format(command)]
+	command = run(args,	stdin=stdin, stdout=PIPE)
+	if a.returncode == 0:
+		return command.stdout.decode()
+	else:
+		logging.warn('Command returned non-zero status code: {}'.format(command))
 
-# Takes a path and the password, returns list of encrypted strings. 
+# Takes a path (vm_name:/path/to/file/or/dir), tars, encrypts, returns as string
+def encrypt_path(path, password):
+	vm_name = path.split(':')[0]
+	vm_path = re.sub('^\w+:', '', path)
+	# 
+	vm_command = 'tar cfz - {} | gpg --cipher-algo AES256 -acqo --passphrase {}'.\
+		format(vm_path, password)
+	tarball = vm_run(vm_command)
+	return tarball
+
+# Takes a path and the password, returns dict of paths:encrypted tarballs.
 def encrypt_all(paths, password):
 	# The path will be in format 'vm_name:/path/to/file'
-	enc_files = []
+	enc_files = {}
 	for path in paths:
-		vm_name = path.split(':')[0]
-		path = re.sub('^\w+:', '', path)
-		# If it's a directory, recurse through the files.
-		if path.endswith('/'):
-			enc_files.extend(encrypt_dir(vm_name, path))
+		tarball = encrypt_path(path, password)
+		if tarball:
+			enc_files[path] = tarball
 		else:
-			enc_files.append(encrypt_file(vm_name, path))
+			logging.error('Failed to create backup for path {}'.format(path))
 	return enc_files
 
-def encrypt_file(vm_name, path):
-	subprocess.run('qvm-run ')
-def encrypt_dir():
-
-
 if __name__ == '__main__':
+	logging.basicConfig(format='%(levelname)s:%(message)s',level=logging.DEBUG) 
 	config, password = get_config()
-	for f in config['files']:
-		if 
-	
+	encrypted_files = encrypt_all(config['paths'], password)
+		
 	# Before executing anything, get a password, if necessary.
 	
