@@ -1,7 +1,7 @@
 {
 	"password" : "don't use this password",
 	"backup_vm" : "backups",
-	"post_backup_command": "sftp -F /home/user/.ssh/config you@you.yourdomain.net: <<<$'mkdir {!} \n cd {!} \n put {!}/*'",
+	"post_backup_command": "sftp -F /home/user/.ssh/config you@you.yourdomain.net:/writable/ <<<$'mkdir {!} \n cd {!} \n put {!}/*'",
 	"paths" : [
 		"personal-ssh:.ssh",
 		"work:Documents/spreadsheets/"
