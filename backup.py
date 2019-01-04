@@ -70,7 +70,7 @@ def encrypt_path(path, password):
 	vm_path = re.sub('^[\w_-]+:', '', path)
 	print(vm_path)
 	# 
-	command = 'tar cfz - {} | gpg --cipher-algo AES256 -acqo - --passphrase {}'.\
+	command = 'tar cfz - {} | gpg --cipher-algo AES256 -acqo - --passphrase {} --batch'.\
 		format(vm_path, password)
 	tarball = vm_run(vm_name, command)
 	return tarball
